@@ -199,144 +199,35 @@ Running `python -m src.main` with the default Pop · Happy · Energy 0.8 profile
 
 ## Experiments You Tried
 
-Use this section to document the experiments you ran. For example:
+**Weight Shift — halving genre, doubling energy:**
+Changing genre from +2.0 to +1.0 and energy from ×2.0 to ×4.0 reshuffled ranks 2 and 3 for the Pop profile (Rooftop Lights beat Gym Hero) but made the melancholic profile worse — Blue Midnight fell out of the top 5 entirely because the doubled energy penalty swamped its mood bonus. The original weights were more balanced.
 
-- What happened when you changed the weight on genre from 2.0 to 0.5
-- What happened when you added tempo or valence to the score
-- How did your system behave for different types of users
+**Six user profiles across three standard and three adversarial cases:**
+Standard profiles (High-Energy Pop, Chill Lofi, Intense Rock) all produced results that matched intuition. The adversarial profiles revealed three real weaknesses: a ghost genre collapses score resolution at the bottom, conflicting mood-energy preferences cannot be satisfied by this catalog, and an acoustic preference actively punishes the otherwise perfect match.
+
+See [reflection.md](reflection.md) for a full pair-by-pair comparison.
 
 ---
 
 ## Limitations and Risks
 
-Summarize some limitations of your recommender.
+- The catalog is tiny — 18 songs, with 12 genres represented by a single track each
+- 12 of 15 genres have only one song, so niche listeners get a genre match at rank 1 and then run out of good results
+- All heavy moods (melancholic, chill, relaxed) are attached to low-energy songs — the data assumes "sad = slow," which is not always true
+- The system has no memory and cannot learn from what you skip or replay
+- Genre matching is binary — "indie pop" never matches "pop" even though they are closely related
 
-Examples:
-
-- It only works on a tiny catalog
-- It does not understand lyrics or language
-- It might over favor one genre or mood
-
-You will go deeper on this in your model card.
+See [model_card.md](model_card.md) for a deeper analysis.
 
 ---
 
 ## Reflection
 
-Read and complete `model_card.md`:
+The biggest learning moment was realising that the **data encodes assumptions before the algorithm even runs**. The scoring logic itself is neutral — it just adds up points. But the catalog was labeled by someone who assumed melancholic songs are slow and aggressive songs are loud. That assumption became invisible bias the moment I ran the first experiment. The algorithm did not create the problem; it inherited it from the data.
 
-[**Model Card**](model_card.md)
+Using AI tools to help write and structure the code sped things up significantly — especially for boilerplate like CSV parsing and output formatting. But the moments that required double-checking were always the reasoning parts: *why* does Gym Hero keep appearing, *what does* the energy gap actually punish, *which* bias matters most to write about. The tool could generate a sentence, but I had to verify it against the actual output numbers to know whether it was true.
 
-Write 1 to 2 paragraphs here about what you learned:
+The most surprising thing was how quickly a simple four-signal scoring function starts to *feel* like a recommendation. Sunrise City ranking first for a happy pop profile at 7.50/8.0 — with a clear breakdown showing every reason — genuinely feels like the system understood something. It did not. It just added four numbers. But the explanation format made it feel intelligent, which is a useful reminder that explainability and accuracy are not the same thing.
 
-- about how recommenders turn data into predictions
-- about where bias or unfairness could show up in systems like this
-
-
----
-
-## 7. `model_card_template.md`
-
-Combines reflection and model card framing from the Module 3 guidance. :contentReference[oaicite:2]{index=2}  
-
-```markdown
-# 🎧 Model Card - Music Recommender Simulation
-
-## 1. Model Name
-
-Give your recommender a name, for example:
-
-> VibeFinder 1.0
-
----
-
-## 2. Intended Use
-
-- What is this system trying to do
-- Who is it for
-
-Example:
-
-> This model suggests 3 to 5 songs from a small catalog based on a user's preferred genre, mood, and energy level. It is for classroom exploration only, not for real users.
-
----
-
-## 3. How It Works (Short Explanation)
-
-Describe your scoring logic in plain language.
-
-- What features of each song does it consider
-- What information about the user does it use
-- How does it turn those into a number
-
-Try to avoid code in this section, treat it like an explanation to a non programmer.
-
----
-
-## 4. Data
-
-Describe your dataset.
-
-- How many songs are in `data/songs.csv`
-- Did you add or remove any songs
-- What kinds of genres or moods are represented
-- Whose taste does this data mostly reflect
-
----
-
-## 5. Strengths
-
-Where does your recommender work well
-
-You can think about:
-- Situations where the top results "felt right"
-- Particular user profiles it served well
-- Simplicity or transparency benefits
-
----
-
-## 6. Limitations and Bias
-
-Where does your recommender struggle
-
-Some prompts:
-- Does it ignore some genres or moods
-- Does it treat all users as if they have the same taste shape
-- Is it biased toward high energy or one genre by default
-- How could this be unfair if used in a real product
-
----
-
-## 7. Evaluation
-
-How did you check your system
-
-Examples:
-- You tried multiple user profiles and wrote down whether the results matched your expectations
-- You compared your simulation to what a real app like Spotify or YouTube tends to recommend
-- You wrote tests for your scoring logic
-
-You do not need a numeric metric, but if you used one, explain what it measures.
-
----
-
-## 8. Future Work
-
-If you had more time, how would you improve this recommender
-
-Examples:
-
-- Add support for multiple users and "group vibe" recommendations
-- Balance diversity of songs instead of always picking the closest match
-- Use more features, like tempo ranges or lyric themes
-
----
-
-## 9. Personal Reflection
-
-A few sentences about what you learned:
-
-- What surprised you about how your system behaved
-- How did building this change how you think about real music recommenders
-- Where do you think human judgment still matters, even if the model seems "smart"
+See [model_card.md](model_card.md) for full documentation.
 
