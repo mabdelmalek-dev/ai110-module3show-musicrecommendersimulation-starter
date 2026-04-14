@@ -36,31 +36,24 @@ Avoid code here. Pretend you are explaining the idea to a friend who does not pr
 
 ```mermaid
 flowchart TD
-	A[User Preferences (profile)] --> B[Load songs.csv]
-	B --> C{For each song}
-	C --> D[Parse song attributes]
-	D --> E[Compute genre_score (+2.0 if match)]
-	D --> F[Compute mood_score (+1.0 if match)]
-	D --> G[Compute energy_score (up to +2.0, decays with distance)]
-	D --> H[Compute acoustic_score (+1.0 or 1-acousticness)]
-	D --> I[Compute tempo_score (up to +0.5)]
-	D --> J[Compute valence_score (up to +0.5)]
-	D --> K[Compute dance_score (up to +0.3)]
-	E --> L[Sum weighted scores -> raw_score]
-	F --> L
-	G --> L
-	H --> L
-	I --> L
-	J --> L
-	K --> L
-	L --> M[Normalize score -> final_score; build explanation]
-	M --> N[Add (song, final_score, explanation) to scored_list]
-	N --> C
-	N --> O[After all songs]
-	O --> P[Sort scored_list by final_score desc]
-	P --> Q[Apply tie-breakers (popularity, diversity penalties)]
-	Q --> R[Select Top K]
-	R --> S[Output: Ranked recommendations (+ explanations)]
+  A["User Preferences (profile)"] --> B["Load songs.csv"]
+  B --> C{"For each song"}
+  C --> D["Parse song attributes"]
+  D --> E["genre_score: +1.0 if match"]
+  D --> F["mood_score: +2.0 if match"]
+  D --> G["energy_score: up to +4.0, decays with distance"]
+  D --> H["acoustic_score: up to +1.0"]
+  E --> L["Sum all component scores"]
+  F --> L
+  G --> L
+  H --> L
+  L --> M["Build explanation from reasons list"]
+  M --> N["Append song, score, explanation to scored_list"]
+  N --> C
+  N --> O["After all songs processed"]
+  O --> P["Sort scored_list by score descending"]
+  P --> Q["Select Top K"]
+  Q --> R["Output ranked recommendations with explanations"]
 ```
 
 ---
@@ -90,16 +83,9 @@ Prompts:
 
 ---
 
-## 6. Limitations and Bias 
+## 6. Limitations and Bias
 
-Where the system struggles or behaves unfairly. 
-
-Prompts:  
-
-- Features it does not consider  
-- Genres or moods that are underrepresented  
-- Cases where the system overfits to one preference  
-- Ways the scoring might unintentionally favor some users  
+The most significant bias discovered during testing is that the linear energy proximity formula systematically disadvantages users whose mood preference and energy preference conflict — for example, someone who wants melancholic music at high energy. In the catalog, every "heavy" mood (melancholic, relaxed, chill) is attached exclusively to low-energy songs (average energy 0.29–0.37), so a high-energy melancholic user receives strong mood-match bonuses only on songs that then lose almost all their energy points, causing those songs to rank below emotionally mismatched tracks that simply happen to have the right tempo. This is not a flaw in the math — it is a reflection of who labeled the dataset: the assumption that "sad = slow" and "happy = fast" is embedded in the data itself, not validated against real listener diversity. A second structural weakness is genre representation: 12 of the 15 genres in the catalog have exactly one song, meaning a blues or reggae fan can earn the genre bonus on at most one track and will always receive a top-5 that is mostly filled by songs with no genre match at all. Together these two issues create a filter bubble that reliably serves pop, lofi, and rock listeners well while quietly failing users with niche or cross-genre tastes.
 
 ---
 
