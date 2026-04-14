@@ -97,34 +97,39 @@ def load_songs(csv_path: str) -> List[Dict]:
     return songs
 
 def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
-    """Score a song against user preferences; return (total_score, reason_strings) with max 7.0."""
+    """Score a song against user preferences; return (total_score, reason_strings) with max 8.0."""
+    # EXPERIMENT: genre halved (2.0 -> 1.0), energy doubled (x2.0 -> x4.0). New max = 8.0.
+    # Revert to GENRE_W=2.0 and ENERGY_W=2.0 to restore original weights.
+    GENRE_W  = 1.0   # was 2.0
+    MOOD_W   = 2.0
+    ENERGY_W = 4.0   # was 2.0
+    ACOUSTIC_W = 1.0
+
     score = 0.0
     reasons: List[str] = []
 
-    # Genre match — binary, +2.0
+    # Genre match — binary
     if song.get('genre', '').lower() == user_prefs.get('favorite_genre', '').lower():
-        points = 2.0
-        score += points
-        reasons.append(f"genre match (+{points:.1f})")
+        score += GENRE_W
+        reasons.append(f"genre match (+{GENRE_W:.1f})")
 
-    # Mood match — binary, +2.0
+    # Mood match — binary
     if song.get('mood', '').lower() == user_prefs.get('favorite_mood', '').lower():
-        points = 2.0
-        score += points
-        reasons.append(f"mood match (+{points:.1f})")
+        score += MOOD_W
+        reasons.append(f"mood match (+{MOOD_W:.1f})")
 
-    # Energy proximity — continuous, max +2.0
+    # Energy proximity — continuous, max = ENERGY_W
     target_energy = user_prefs.get('target_energy')
     song_energy = song.get('energy')
     if target_energy is not None and song_energy is not None:
-        points = (1.0 - abs(target_energy - song_energy)) * 2.0
+        points = (1.0 - abs(target_energy - song_energy)) * ENERGY_W
         score += points
         reasons.append(f"energy proximity (+{points:.2f})")
 
-    # Acousticness preference — continuous, max +1.0
+    # Acousticness preference — continuous, max = ACOUSTIC_W
     acousticness = song.get('acousticness')
     if acousticness is not None:
-        points = acousticness if user_prefs.get('likes_acoustic') else (1.0 - acousticness)
+        points = (acousticness if user_prefs.get('likes_acoustic') else (1.0 - acousticness)) * ACOUSTIC_W
         score += points
         reasons.append(f"acousticness preference (+{points:.2f})")
 

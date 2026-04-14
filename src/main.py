@@ -11,7 +11,7 @@ You will implement the functions in recommender.py:
 
 from .recommender import load_songs, recommend_songs
 
-MAX_SCORE = 7.0  # genre(2) + mood(2) + energy(2) + acousticness(1)
+MAX_SCORE = 8.0  # EXPERIMENT: genre(1) + mood(2) + energy(4) + acousticness(1)
 
 
 def print_recommendations(recommendations, user_prefs: dict, k: int, label: str = "", index: int = 0) -> None:
