@@ -93,37 +93,6 @@ flowchart TD
 
 You can tune weights (genre vs energy vs mood), add preference weights or ranges, or learn weights from interaction data to mitigate these biases over time.
 
-**Process Flow**
-
-```mermaid
-flowchart TD
-  A["User Preferences (profile)"] --> B["Load songs.csv"]
-  B --> C{"For each song"}
-  C --> D["Parse song attributes"]
-  D --> E["genre_score: +2.0 if match"]
-  D --> F["mood_score: +1.0 if match"]
-  D --> G["energy_score: up to +2.0, decays with distance"]
-  D --> H["acoustic_score: up to +1.0"]
-  D --> I["tempo_score: up to +0.5"]
-  D --> J["valence_score: up to +0.5"]
-  D --> K["dance_score: up to +0.3"]
-  E --> L["Sum all component scores"]
-  F --> L
-  G --> L
-  H --> L
-  I --> L
-  J --> L
-  K --> L
-  L --> M["Normalize to final_score and build explanation"]
-  M --> N["Append song, score, explanation to scored_list"]
-  N --> C
-  N --> O["After all songs processed"]
-  O --> P["Sort scored_list by final_score descending"]
-  P --> Q["Apply tie-breakers: popularity and diversity"]
-  Q --> R["Select Top K"]
-  R --> S["Output ranked recommendations with explanations"]
-```
-
 ---
 
 ## Getting Started
