@@ -56,31 +56,31 @@ In production systems, recommenders combine explicit preferences, implicit behav
 
 ```mermaid
 flowchart TD
-  A[User Preferences (profile)] --> B[Load songs.csv]
-  B --> C{For each song}
-  C --> D[Parse song attributes]
-  D --> E[Compute genre_score (+2.0 if match)]
-  D --> F[Compute mood_score (+1.0 if match)]
-  D --> G[Compute energy_score (up to +2.0, decays with distance)]
-  D --> H[Compute acoustic_score (+1.0 or 1-acousticness)]
-  D --> I[Compute tempo_score (up to +0.5)]
-  D --> J[Compute valence_score (up to +0.5)]
-  D --> K[Compute dance_score (up to +0.3)]
-  E --> L[Sum weighted scores -> raw_score]
+  A["User Preferences (profile)"] --> B["Load songs.csv"]
+  B --> C{"For each song"}
+  C --> D["Parse song attributes"]
+  D --> E["genre_score: +2.0 if match"]
+  D --> F["mood_score: +1.0 if match"]
+  D --> G["energy_score: up to +2.0, decays with distance"]
+  D --> H["acoustic_score: up to +1.0"]
+  D --> I["tempo_score: up to +0.5"]
+  D --> J["valence_score: up to +0.5"]
+  D --> K["dance_score: up to +0.3"]
+  E --> L["Sum all component scores"]
   F --> L
   G --> L
   H --> L
   I --> L
   J --> L
   K --> L
-  L --> M[Normalize score -> final_score; build explanation]
-  M --> N[Add (song, final_score, explanation) to scored_list]
+  L --> M["Normalize to final_score and build explanation"]
+  M --> N["Append song, score, explanation to scored_list"]
   N --> C
-  N --> O[After all songs]
-  O --> P[Sort scored_list by final_score desc]
-  P --> Q[Apply tie-breakers (popularity, diversity penalties)]
-  Q --> R[Select Top K]
-  R --> S[Output: Ranked recommendations (+ explanations)]
+  N --> O["After all songs processed"]
+  O --> P["Sort scored_list by final_score descending"]
+  P --> Q["Apply tie-breakers: popularity and diversity"]
+  Q --> R["Select Top K"]
+  R --> S["Output ranked recommendations with explanations"]
 ```
 
 ### Potential Biases and Limitations
@@ -97,31 +97,31 @@ You can tune weights (genre vs energy vs mood), add preference weights or ranges
 
 ```mermaid
 flowchart TD
-  A[User Preferences (profile)] --> B[Load songs.csv]
-  B --> C{For each song}
-  C --> D[Parse song attributes]
-  D --> E[Compute genre_score (+2.0 if match)]
-  D --> F[Compute mood_score (+1.0 if match)]
-  D --> G[Compute energy_score (up to +2.0, decays with distance)]
-  D --> H[Compute acoustic_score (+1.0 or 1-acousticness)]
-  D --> I[Compute tempo_score (up to +0.5)]
-  D --> J[Compute valence_score (up to +0.5)]
-  D --> K[Compute dance_score (up to +0.3)]
-  E --> L[Sum weighted scores -> raw_score]
+  A["User Preferences (profile)"] --> B["Load songs.csv"]
+  B --> C{"For each song"}
+  C --> D["Parse song attributes"]
+  D --> E["genre_score: +2.0 if match"]
+  D --> F["mood_score: +1.0 if match"]
+  D --> G["energy_score: up to +2.0, decays with distance"]
+  D --> H["acoustic_score: up to +1.0"]
+  D --> I["tempo_score: up to +0.5"]
+  D --> J["valence_score: up to +0.5"]
+  D --> K["dance_score: up to +0.3"]
+  E --> L["Sum all component scores"]
   F --> L
   G --> L
   H --> L
   I --> L
   J --> L
   K --> L
-  L --> M[Normalize score -> final_score; build explanation]
-  M --> N[Add (song, final_score, explanation) to scored_list]
+  L --> M["Normalize to final_score and build explanation"]
+  M --> N["Append song, score, explanation to scored_list"]
   N --> C
-  N --> O[After all songs]
-  O --> P[Sort scored_list by final_score desc]
-  P --> Q[Apply tie-breakers (popularity, diversity penalties)]
-  Q --> R[Select Top K]
-  R --> S[Output: Ranked recommendations (+ explanations)]
+  N --> O["After all songs processed"]
+  O --> P["Sort scored_list by final_score descending"]
+  P --> Q["Apply tie-breakers: popularity and diversity"]
+  Q --> R["Select Top K"]
+  R --> S["Output ranked recommendations with explanations"]
 ```
 
 ---
