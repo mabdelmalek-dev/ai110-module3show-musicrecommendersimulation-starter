@@ -163,6 +163,28 @@ You can add more tests in `tests/test_recommender.py`.
 
 ## Sample Output
 
+Running `python -m src.main` produces one block per profile. Screenshots of all 6 runs:
+
+### Profile 1 — High-Energy Pop
+![Profile 1 - High-Energy Pop](assets/pr1.png)
+
+### Profile 2 — Chill Lofi
+![Profile 2 - Chill Lofi](assets/pr2.png)
+
+### Profile 3 — Intense Rock
+![Profile 3 - Intense Rock](assets/pr3.png)
+
+### Profile 4 — EDGE: Ghost Genre (k-pop not in catalog)
+![Profile 4 - Ghost Genre](assets/pr4.png)
+
+### Profile 5 — EDGE: High-Energy + Melancholic (conflicting signals)
+![Profile 5 - Conflicting Signals](assets/pr5.png)
+
+### Profile 6 — EDGE: Acoustic Metal Fan (preference punishes the perfect match)
+![Profile 6 - Acoustic Metal Fan](assets/pr6.png)
+
+---
+
 Running `python -m src.main` with the default Pop · Happy · Energy 0.8 profile:
 
 ```
