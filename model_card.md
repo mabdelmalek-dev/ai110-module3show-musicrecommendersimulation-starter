@@ -32,6 +32,37 @@ Prompts:
 
 Avoid code here. Pretend you are explaining the idea to a friend who does not program.
 
+**Process Flow**
+
+```mermaid
+flowchart TD
+	A[User Preferences (profile)] --> B[Load songs.csv]
+	B --> C{For each song}
+	C --> D[Parse song attributes]
+	D --> E[Compute genre_score (+2.0 if match)]
+	D --> F[Compute mood_score (+1.0 if match)]
+	D --> G[Compute energy_score (up to +2.0, decays with distance)]
+	D --> H[Compute acoustic_score (+1.0 or 1-acousticness)]
+	D --> I[Compute tempo_score (up to +0.5)]
+	D --> J[Compute valence_score (up to +0.5)]
+	D --> K[Compute dance_score (up to +0.3)]
+	E --> L[Sum weighted scores -> raw_score]
+	F --> L
+	G --> L
+	H --> L
+	I --> L
+	J --> L
+	K --> L
+	L --> M[Normalize score -> final_score; build explanation]
+	M --> N[Add (song, final_score, explanation) to scored_list]
+	N --> C
+	N --> O[After all songs]
+	O --> P[Sort scored_list by final_score desc]
+	P --> Q[Apply tie-breakers (popularity, diversity penalties)]
+	Q --> R[Select Top K]
+	R --> S[Output: Ranked recommendations (+ explanations)]
+```
+
 ---
 
 ## 4. Data  
