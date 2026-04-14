@@ -221,13 +221,15 @@ See [model_card.md](model_card.md) for a deeper analysis.
 
 ---
 
-## Reflection
+## Personal Reflection
 
 The biggest learning moment was realising that the **data encodes assumptions before the algorithm even runs**. The scoring logic itself is neutral — it just adds up points. But the catalog was labeled by someone who assumed melancholic songs are slow and aggressive songs are loud. That assumption became invisible bias the moment I ran the first experiment. The algorithm did not create the problem; it inherited it from the data.
 
-Using AI tools to help write and structure the code sped things up significantly — especially for boilerplate like CSV parsing and output formatting. But the moments that required double-checking were always the reasoning parts: *why* does Gym Hero keep appearing, *what does* the energy gap actually punish, *which* bias matters most to write about. The tool could generate a sentence, but I had to verify it against the actual output numbers to know whether it was true.
+Using AI tools to help write and structure the code sped things up significantly — especially for CSV parsing and output formatting. But the moments that required double-checking were always the reasoning parts: *why* does Gym Hero keep appearing, *what does* the energy gap actually punish, *which* bias matters most to write about. The tool could generate a sentence, but I had to verify it against the actual output numbers to know whether it was true.
 
 The most surprising thing was how quickly a simple four-signal scoring function starts to *feel* like a recommendation. Sunrise City ranking first for a happy pop profile at 7.50/8.0 — with a clear breakdown showing every reason — genuinely feels like the system understood something. It did not. It just added four numbers. But the explanation format made it feel intelligent, which is a useful reminder that explainability and accuracy are not the same thing.
+
+If I extended this project, the first thing I would fix is the data, not the code — adding more songs per niche genre and breaking the assumption that sad always means slow. After that, I would replace binary genre matching with a tag system so that "indie pop" can partially match "pop" instead of scoring zero. The third change would be letting the weights adapt from listener feedback rather than staying hardcoded, since the weight-shift experiment showed there is no universally correct balance. Finally, I would add a confidence signal so the system can say "I found a strong match" versus "I found nothing good and I am guessing" — because right now both cases look identical in the output.
 
 See [model_card.md](model_card.md) for full documentation.
 
