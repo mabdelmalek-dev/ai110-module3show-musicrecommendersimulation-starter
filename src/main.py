@@ -9,6 +9,7 @@ You will implement the functions in recommender.py:
 - recommend_songs
 """
 
+from tabulate import tabulate
 from .recommender import load_songs, recommend_songs, SCORING_MODES
 
 
@@ -22,26 +23,30 @@ def print_recommendations(recommendations, user_prefs: dict, k: int,
     acoustic = "yes" if user_prefs["likes_acoustic"] else "no"
     diversity = f"artist -{artist_penalty:.0f}  genre -{genre_penalty:.1f}" if (artist_penalty or genre_penalty) else "OFF"
 
-    W = 66
+    W = 74
     print("\n" + "#" * W)
     print(f"  PROFILE {index}  |  {label}".center(W))
     print("#" * W)
     print(f"  Mode     : {mode.name}")
     print(f"  Diversity: {diversity}")
     print(f"  Prefs    : {genre} · {mood} · Energy {energy} · Acoustic {acoustic}")
-    print("-" * W)
+    print()
 
+    rows = []
     for rank, (song, score, explanation) in enumerate(recommendations, start=1):
         bar_filled = max(0, round((score / mode.max_score) * 20))
-        bar_empty  = 20 - bar_filled
-        score_bar  = "[" + "#" * bar_filled + "-" * bar_empty + "]"
-        print(f"\n  {rank}.  {song['title']}  --  {song['artist']}")
-        print(f"       {score_bar}  {score:.2f} / {mode.max_score:.1f}")
-        for reason in explanation.split("; "):
-            tag = "!" if "diversity penalty" in reason else "-"
-            print(f"         {tag} {reason}")
+        score_bar  = "[" + "#" * bar_filled + "-" * (20 - bar_filled) + "]"
+        song_cell  = f"{song['title']}\n-- {song['artist']}"
+        score_cell = f"{score_bar}\n{score:.2f} / {mode.max_score:.1f}"
+        reasons_cell = "\n".join(
+            f"! {r}" if "diversity penalty" in r else f"  {r}"
+            for r in explanation.split("; ")
+        )
+        rows.append([rank, song_cell, score_cell, reasons_cell])
 
-    print("\n" + "-" * W)
+    headers = ["#", "Song — Artist", "Score", "Reasons"]
+    print(tabulate(rows, headers=headers, tablefmt="grid"))
+    print()
 
 
 # ---------------------------------------------------------------------------
