@@ -130,20 +130,6 @@ You can add more tests in `tests/test_recommender.py`.
 
 ---
 
-## Optional Feature Challenge 1–4 Added — Sample Profile Output
-
-The output below shows all four optional features active at once:
-
-1. **5 new song attributes** — `popularity`, `release_decade`, `mood_tags`, `instrumentalness`, `liveness` — all scored and shown as reasons.
-2. **Multiple Scoring Modes** — each profile runs under a named mode (`Balanced`, `Mood-First`, `Genre-First`, `Energy-Focused`, `Discovery`) with different weight presets.
-3. **Diversity Penalty** — greedy selection penalises repeated artists (`-2`) and genres (`-0.5`), shown as `! diversity penalty` in the reasons column.
-4. **Visual Summary Table** — `tabulate` grid with score bar, score/max, and per-signal reasons in a single aligned table.
-
-### Profile 1 — High-Energy Pop (Balanced mode, diversity ON)
-![Optional Features — Profile 1 High-Energy Pop](assets/tabulate_output.png)
-
----
-
 ## Sample Output
 
 Running `python -m src.main` produces one block per profile. Screenshots of all 6 runs:
@@ -246,4 +232,18 @@ The most surprising thing was how quickly a simple four-signal scoring function 
 If I extended this project, the first thing I would fix is the data, not the code — adding more songs per niche genre and breaking the assumption that sad always means slow. After that, I would replace binary genre matching with a tag system so that "indie pop" can partially match "pop" instead of scoring zero. The third change would be letting the weights adapt from listener feedback rather than staying hardcoded, since the weight-shift experiment showed there is no universally correct balance. Finally, I would add a confidence signal so the system can say "I found a strong match" versus "I found nothing good and I am guessing" — because right now both cases look identical in the output.
 
 See [model_card.md](model_card.md) for full documentation.
+
+---
+
+## Optional Feature Challenge 1–4 Added — Sample Profile Output
+
+The output below shows all four optional features active at once:
+
+1. **5 new song attributes** — `popularity`, `release_decade`, `mood_tags`, `instrumentalness`, `liveness` — all scored and shown as reasons.
+2. **Multiple Scoring Modes** — each profile runs under a named mode (`Balanced`, `Mood-First`, `Genre-First`, `Energy-Focused`, `Discovery`) with different weight presets.
+3. **Diversity Penalty** — greedy selection penalises repeated artists (`-2`) and genres (`-0.5`), shown as `! diversity penalty` in the reasons column.
+4. **Visual Summary Table** — `tabulate` grid with score bar, score/max, and per-signal reasons in a single aligned table.
+
+### Profile 1 — High-Energy Pop (Balanced mode, diversity ON)
+![Optional Features — Profile 1 High-Energy Pop](assets/tabulate_output.png)
 
