@@ -130,6 +130,20 @@ You can add more tests in `tests/test_recommender.py`.
 
 ---
 
+## Optional Feature Challenge 1–4 Added — Sample Profile Output
+
+The output below shows all four optional features active at once:
+
+1. **5 new song attributes** — `popularity`, `release_decade`, `mood_tags`, `instrumentalness`, `liveness` — all scored and shown as reasons.
+2. **Multiple Scoring Modes** — each profile runs under a named mode (`Balanced`, `Mood-First`, `Genre-First`, `Energy-Focused`, `Discovery`) with different weight presets.
+3. **Diversity Penalty** — greedy selection penalises repeated artists (`-2`) and genres (`-0.5`), shown as `! diversity penalty` in the reasons column.
+4. **Visual Summary Table** — `tabulate` grid with score bar, score/max, and per-signal reasons in a single aligned table.
+
+### Profile 1 — High-Energy Pop (Balanced mode, diversity ON)
+![Optional Features — Profile 1 High-Energy Pop](assets/tabulate_output.png)
+
+---
+
 ## Sample Output
 
 Running `python -m src.main` produces one block per profile. Screenshots of all 6 runs:
