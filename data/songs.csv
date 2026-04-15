@@ -1,19 +1,19 @@
-id,title,artist,genre,mood,energy,tempo_bpm,valence,danceability,acousticness
-1,Sunrise City,Neon Echo,pop,happy,0.82,118,0.84,0.79,0.18
-2,Midnight Coding,LoRoom,lofi,chill,0.42,78,0.56,0.62,0.71
-3,Storm Runner,Voltline,rock,intense,0.91,152,0.48,0.66,0.10
-4,Library Rain,Paper Lanterns,lofi,chill,0.35,72,0.60,0.58,0.86
-5,Gym Hero,Max Pulse,pop,intense,0.93,132,0.77,0.88,0.05
-6,Spacewalk Thoughts,Orbit Bloom,ambient,chill,0.28,60,0.65,0.41,0.92
-7,Coffee Shop Stories,Slow Stereo,jazz,relaxed,0.37,90,0.71,0.54,0.89
-8,Night Drive Loop,Neon Echo,synthwave,moody,0.75,110,0.49,0.73,0.22
-9,Focus Flow,LoRoom,lofi,focused,0.40,80,0.59,0.60,0.78
-10,Rooftop Lights,Indigo Parade,indie pop,happy,0.76,124,0.81,0.82,0.35
-11,Moonlight Sonata Reprise,Silver Harp,classical,melancholic,0.20,58,0.25,0.15,0.95
-12,Club Pulse,Young Rhyme,hip-hop,party,0.88,100,0.80,0.92,0.10
-13,Dusty Road,Amber Field,country,nostalgic,0.55,95,0.70,0.60,0.75
-14,Sunset Reggae,Island Echo,reggae,soulful,0.60,75,0.78,0.70,0.40
-15,Iron Fist,Steel Reign,metal,aggressive,0.97,190,0.30,0.65,0.05
-16,Willow Lullaby,Folk Hollow,folk,romantic,0.45,70,0.82,0.40,0.88
-17,Blue Midnight,Delta Road,blues,melancholic,0.38,65,0.35,0.45,0.80
-18,Velvet Nights,Soul Meridian,R&B,romantic,0.68,84,0.86,0.88,0.25
+id,title,artist,genre,mood,energy,tempo_bpm,valence,danceability,acousticness,popularity,release_decade,mood_tags,instrumentalness,liveness
+1,Sunrise City,Neon Echo,pop,happy,0.82,118,0.84,0.79,0.18,78,2020,"euphoric,uplifting,dancefloor",0.05,0.12
+2,Midnight Coding,LoRoom,lofi,chill,0.42,78,0.56,0.62,0.71,65,2020,"focused,calm,cozy",0.82,0.08
+3,Storm Runner,Voltline,rock,intense,0.91,152,0.48,0.66,0.10,71,2010,"aggressive,powerful,adrenaline",0.10,0.22
+4,Library Rain,Paper Lanterns,lofi,chill,0.35,72,0.60,0.58,0.86,58,2020,"calm,nostalgic,cozy",0.78,0.06
+5,Gym Hero,Max Pulse,pop,intense,0.93,132,0.77,0.88,0.05,85,2020,"motivational,aggressive,energetic",0.03,0.14
+6,Spacewalk Thoughts,Orbit Bloom,ambient,chill,0.28,60,0.65,0.41,0.92,42,2010,"dreamy,ethereal,calm",0.91,0.05
+7,Coffee Shop Stories,Slow Stereo,jazz,relaxed,0.37,90,0.71,0.54,0.89,54,2010,"cozy,nostalgic,romantic",0.35,0.45
+8,Night Drive Loop,Neon Echo,synthwave,moody,0.75,110,0.49,0.73,0.22,67,2020,"nostalgic,cinematic,euphoric",0.62,0.09
+9,Focus Flow,LoRoom,lofi,focused,0.40,80,0.59,0.60,0.78,61,2020,"calm,focused,productive",0.88,0.07
+10,Rooftop Lights,Indigo Parade,indie pop,happy,0.76,124,0.81,0.82,0.35,73,2020,"uplifting,romantic,dancefloor",0.08,0.18
+11,Moonlight Sonata Reprise,Silver Harp,classical,melancholic,0.20,58,0.25,0.15,0.95,48,2000,"nostalgic,melancholic,ethereal",0.98,0.30
+12,Club Pulse,Young Rhyme,hip-hop,party,0.88,100,0.80,0.92,0.10,88,2020,"euphoric,dancefloor,energetic",0.05,0.20
+13,Dusty Road,Amber Field,country,nostalgic,0.55,95,0.70,0.60,0.75,52,2010,"nostalgic,romantic,calm",0.22,0.38
+14,Sunset Reggae,Island Echo,reggae,soulful,0.60,75,0.78,0.70,0.40,60,2010,"uplifting,calm,romantic",0.15,0.42
+15,Iron Fist,Steel Reign,metal,aggressive,0.97,190,0.30,0.65,0.05,74,2010,"aggressive,powerful,adrenaline",0.12,0.28
+16,Willow Lullaby,Folk Hollow,folk,romantic,0.45,70,0.82,0.40,0.88,44,2010,"romantic,nostalgic,calm",0.30,0.50
+17,Blue Midnight,Delta Road,blues,melancholic,0.38,65,0.35,0.45,0.80,39,2000,"melancholic,nostalgic,soulful",0.18,0.55
+18,Velvet Nights,Soul Meridian,R&B,romantic,0.68,84,0.86,0.88,0.25,76,2020,"romantic,euphoric,uplifting",0.06,0.25

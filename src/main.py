@@ -11,7 +11,7 @@ You will implement the functions in recommender.py:
 
 from .recommender import load_songs, recommend_songs
 
-MAX_SCORE = 8.0  # EXPERIMENT: genre(1) + mood(2) + energy(4) + acousticness(1)
+MAX_SCORE = 14.0  # genre(1)+mood(2)+energy(4)+acoustic(1)+popularity(1)+era(1.5)+tags(2)+instru(1)+live(0.5)
 
 
 def print_recommendations(recommendations, user_prefs: dict, k: int, label: str = "", index: int = 0) -> None:
@@ -46,67 +46,93 @@ def print_recommendations(recommendations, user_prefs: dict, k: int, label: str 
 # ---------------------------------------------------------------------------
 
 PROFILES = [
-    # --- Standard profiles ---------------------------------------------------
+    # --- Standard profiles (now include all new preference fields) -----------
     (
         "High-Energy Pop",
         {
-            "favorite_genre": "pop",
-            "favorite_mood":  "happy",
-            "target_energy":  0.9,
-            "likes_acoustic": False,
+            "favorite_genre":       "pop",
+            "favorite_mood":        "happy",
+            "target_energy":        0.9,
+            "likes_acoustic":       False,
+            "preferred_popularity": "mainstream",  # reward well-known tracks
+            "preferred_decade":     2020,           # wants current-era songs
+            "preferred_tags":       ["euphoric", "dancefloor", "uplifting"],
+            "likes_instrumental":   False,          # wants vocals
+            "wants_live_feel":      False,          # prefers studio-clean
         },
     ),
     (
         "Chill Lofi",
         {
-            "favorite_genre": "lofi",
-            "favorite_mood":  "chill",
-            "target_energy":  0.35,
-            "likes_acoustic": True,
+            "favorite_genre":       "lofi",
+            "favorite_mood":        "chill",
+            "target_energy":        0.35,
+            "likes_acoustic":       True,
+            "preferred_popularity": None,           # popularity doesn't matter
+            "preferred_decade":     2020,
+            "preferred_tags":       ["calm", "cozy", "focused"],
+            "likes_instrumental":   True,           # prefers no vocals
+            "wants_live_feel":      False,
         },
     ),
     (
         "Intense Rock",
         {
-            "favorite_genre": "rock",
-            "favorite_mood":  "intense",
-            "target_energy":  0.9,
-            "likes_acoustic": False,
+            "favorite_genre":       "rock",
+            "favorite_mood":        "intense",
+            "target_energy":        0.9,
+            "likes_acoustic":       False,
+            "preferred_popularity": None,
+            "preferred_decade":     2010,           # prefers 2010s rock era
+            "preferred_tags":       ["aggressive", "powerful", "adrenaline"],
+            "likes_instrumental":   False,
+            "wants_live_feel":      True,           # wants that live-gig energy
+        },
+    ),
+    # --- New profile: exercises all 5 new attributes -------------------------
+    (
+        "Nostalgic Vinyl Fan",
+        # Wants obscure, acoustic, vocal blues from the 2000s with a live feel.
+        # Tests era match, obscure popularity, soulful tag overlap, and liveness.
+        {
+            "favorite_genre":       "blues",
+            "favorite_mood":        "melancholic",
+            "target_energy":        0.4,
+            "likes_acoustic":       True,
+            "preferred_popularity": "obscure",      # prefers under-the-radar songs
+            "preferred_decade":     2000,           # wants 2000s or adjacent era
+            "preferred_tags":       ["nostalgic", "melancholic", "soulful"],
+            "likes_instrumental":   False,          # wants vocal-led songs
+            "wants_live_feel":      True,           # wants live recording warmth
         },
     ),
     # --- Adversarial / edge-case profiles ------------------------------------
     (
         "EDGE: Ghost Genre (k-pop not in catalog)",
-        # No song will ever match the genre — the +2.0 genre bonus never fires.
-        # Reveals how tightly scores compress when only energy + acousticness score.
         {
-            "favorite_genre": "k-pop",
-            "favorite_mood":  "happy",
-            "target_energy":  0.8,
-            "likes_acoustic": False,
+            "favorite_genre":       "k-pop",
+            "favorite_mood":        "happy",
+            "target_energy":        0.8,
+            "likes_acoustic":       False,
+            "preferred_popularity": "mainstream",
+            "preferred_decade":     2020,
+            "preferred_tags":       ["euphoric", "dancefloor"],
+            "likes_instrumental":   False,
+            "wants_live_feel":      False,
         },
     ),
     (
         "EDGE: High-Energy + Melancholic (conflicting signals)",
-        # 'melancholic' only exists on low-energy classical/blues songs.
-        # Tests whether the rock genre bonus on Storm Runner overrides the mood mismatch.
         {
-            "favorite_genre": "rock",
-            "favorite_mood":  "melancholic",
-            "target_energy":  0.9,
-            "likes_acoustic": False,
-        },
-    ),
-    (
-        "EDGE: Acoustic Metal Fan (preference punishes the perfect match)",
-        # Iron Fist (metal/aggressive, energy 0.97) is a perfect genre+mood+energy match
-        # but has acousticness 0.05 — likes_acoustic:True awards only +0.05 to it,
-        # while highly acoustic songs it should never surface gain up to +1.0.
-        {
-            "favorite_genre": "metal",
-            "favorite_mood":  "aggressive",
-            "target_energy":  0.97,
-            "likes_acoustic": True,
+            "favorite_genre":       "rock",
+            "favorite_mood":        "melancholic",
+            "target_energy":        0.9,
+            "likes_acoustic":       False,
+            "preferred_popularity": None,
+            "preferred_decade":     2010,
+            "preferred_tags":       ["melancholic", "powerful"],
+            "likes_instrumental":   False,
+            "wants_live_feel":      True,
         },
     ),
 ]
