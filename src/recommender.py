@@ -277,13 +277,66 @@ def score_song(user_prefs: Dict, song: Dict,
 
 
 def recommend_songs(user_prefs: Dict, songs: List[Dict], k: int = 5,
-                    mode: ScoringMode = DEFAULT_MODE) -> List[Tuple[Dict, float, str]]:
-    """Return the top-k songs ranked by score_song under the given ScoringMode."""
-    def to_entry(song: Dict) -> Tuple[Dict, float, str]:
-        """Pack a song into a (song, score, explanation) tuple using score_song."""
-        score, reasons = score_song(user_prefs, song, mode)
-        explanation = "; ".join(reasons) if reasons else "No strong matches found."
-        return (song, score, explanation)
+                    mode: ScoringMode = DEFAULT_MODE,
+                    artist_penalty: float = 2.0,
+                    genre_penalty: float = 0.5) -> List[Tuple[Dict, float, str]]:
+    """
+    Return the top-k songs ranked by score_song under the given ScoringMode.
 
-    scored = [to_entry(song) for song in songs]
-    return sorted(scored, key=lambda entry: entry[1], reverse=True)[:k]
+    Diversity penalty (applied at selection time, not scoring time):
+      - Each time an artist is already in the selected list, every remaining
+        song by that artist loses `artist_penalty` points from its effective score.
+      - Each time a genre is already in the selected list, every remaining
+        song in that genre loses `genre_penalty` points.
+    This prevents the same artist or genre from monopolising the top results.
+    Set both penalties to 0.0 to disable diversity enforcement.
+    """
+    # Step 1 — score every song independently (no diversity concern here)
+    candidates: List[Dict] = []
+    for song in songs:
+        raw_score, reasons = score_song(user_prefs, song, mode)
+        candidates.append({
+            "song":      song,
+            "raw_score": raw_score,
+            "reasons":   reasons,
+        })
+
+    # Step 2 — greedy selection with running diversity penalty
+    selected: List[Tuple[Dict, float, str]] = []
+    artist_counts: Dict[str, int] = {}
+    genre_counts:  Dict[str, int] = {}
+
+    while len(selected) < k and candidates:
+        # Find the candidate with the highest *effective* score after penalties
+        best_idx      = 0
+        best_effective = float('-inf')
+
+        for i, entry in enumerate(candidates):
+            artist  = entry["song"].get("artist", "")
+            genre   = entry["song"].get("genre", "")
+            penalty = (artist_counts.get(artist, 0) * artist_penalty +
+                       genre_counts.get(genre,  0) * genre_penalty)
+            effective = entry["raw_score"] - penalty
+            if effective > best_effective:
+                best_effective = effective
+                best_idx = i
+
+        chosen  = candidates.pop(best_idx)
+        artist  = chosen["song"].get("artist", "")
+        genre   = chosen["song"].get("genre",  "")
+
+        # Build explanation — append penalty line if one was applied
+        penalty_applied = (artist_counts.get(artist, 0) * artist_penalty +
+                           genre_counts.get(genre,  0) * genre_penalty)
+        reasons = list(chosen["reasons"])
+        if penalty_applied > 0:
+            reasons.append(f"diversity penalty (-{penalty_applied:.1f})")
+
+        explanation = "; ".join(reasons) if reasons else "No strong matches found."
+        selected.append((chosen["song"], best_effective, explanation))
+
+        # Update counts so later picks are penalised accordingly
+        artist_counts[artist] = artist_counts.get(artist, 0) + 1
+        genre_counts[genre]   = genre_counts.get(genre,  0) + 1
+
+    return selected
