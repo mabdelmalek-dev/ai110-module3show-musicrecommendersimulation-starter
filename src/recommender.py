@@ -1,6 +1,6 @@
 from typing import List, Dict, Tuple, Optional
 import csv
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 @dataclass
 class Song:
@@ -117,112 +117,171 @@ def load_songs(csv_path: str) -> List[Dict]:
     print(f"Loaded songs: {len(songs)}")
     return songs
 
-def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
-    """Score a song against user preferences; return (total_score, reason_strings) with max 14.0."""
-    # --- weights (original 8.0 budget) ---
-    GENRE_W     = 1.0
-    MOOD_W      = 2.0
-    ENERGY_W    = 4.0
-    ACOUSTIC_W  = 1.0
-    # --- new attribute weights (6.0 budget, total max = 14.0) ---
-    POPULAR_W   = 1.0   # mainstream or obscure preference
-    ERA_W       = 1.5   # exact decade match; 0.5× for adjacent decade
-    TAG_W       = 0.5   # per overlapping mood tag, capped at 4 matches (+2.0)
-    INSTRU_W    = 1.0   # instrumental vs vocal preference
-    LIVE_W      = 0.5   # live-feel preference
+# ---------------------------------------------------------------------------
+# Scoring Strategy — dataclass carrying all signal weights for one mode.
+# Swap the mode object to change ranking behaviour without touching any
+# scoring logic.  Each weight scales the raw signal value for that feature.
+# ---------------------------------------------------------------------------
 
+@dataclass
+class ScoringMode:
+    """
+    Holds the weight multipliers for every scoring signal.
+    Pass a different ScoringMode instance to score_song / recommend_songs
+    to switch ranking strategy without changing any scoring logic.
+    """
+    name:        str
+    description: str
+    # categorical signals
+    genre_w:    float = 1.0   # flat bonus for exact genre match
+    mood_w:     float = 2.0   # flat bonus for exact mood match
+    # continuous signals
+    energy_w:   float = 4.0   # (1 - |target - song|) × energy_w
+    acoustic_w: float = 1.0   # acousticness or (1-acousticness) × acoustic_w
+    popular_w:  float = 1.0   # (pop/100) or ((100-pop)/100) × popular_w
+    era_w:      float = 1.5   # exact decade = era_w; adjacent = era_w × 0.5
+    tag_w:      float = 0.5   # +tag_w per matching mood tag (max 4 tags)
+    instru_w:   float = 1.0   # instrumentalness or (1-instrumentalness) × instru_w
+    live_w:     float = 0.5   # liveness or (1-liveness) × live_w
+
+    @property
+    def max_score(self) -> float:
+        """Theoretical maximum achievable under this mode."""
+        return (self.genre_w + self.mood_w + self.energy_w + self.acoustic_w +
+                self.popular_w + self.era_w + self.tag_w * 4 +
+                self.instru_w + self.live_w)
+
+
+# ---------------------------------------------------------------------------
+# Built-in mode presets — import SCORING_MODES in main.py to switch modes.
+# ---------------------------------------------------------------------------
+
+SCORING_MODES: Dict[str, ScoringMode] = {
+    "balanced": ScoringMode(
+        name="Balanced",
+        description="All signals weighted evenly. Good general-purpose default.",
+        genre_w=1.0, mood_w=2.0, energy_w=4.0, acoustic_w=1.0,
+        popular_w=1.0, era_w=1.5, tag_w=0.5, instru_w=1.0, live_w=0.5,
+    ),
+    "genre_first": ScoringMode(
+        name="Genre-First",
+        description="Genre match worth 5× everything else. Use when catalog identity matters most.",
+        genre_w=5.0, mood_w=1.0, energy_w=1.5, acoustic_w=0.5,
+        popular_w=0.5, era_w=0.5, tag_w=0.25, instru_w=0.5, live_w=0.25,
+    ),
+    "mood_first": ScoringMode(
+        name="Mood-First",
+        description="Emotional feel and tag overlap dominate. Genre is just a tiebreaker.",
+        genre_w=0.5, mood_w=5.0, energy_w=1.5, acoustic_w=0.5,
+        popular_w=0.5, era_w=0.5, tag_w=1.5, instru_w=0.5, live_w=0.25,
+    ),
+    "energy_focused": ScoringMode(
+        name="Energy-Focused",
+        description="BPM and intensity dominate. Great for workout or activity playlists.",
+        genre_w=0.5, mood_w=0.5, energy_w=8.0, acoustic_w=1.0,
+        popular_w=0.5, era_w=0.5, tag_w=0.25, instru_w=0.5, live_w=0.25,
+    ),
+    "discovery": ScoringMode(
+        name="Discovery",
+        description="Rewards obscure songs, live recordings, and era specificity. Finds hidden gems.",
+        genre_w=0.5, mood_w=1.0, energy_w=2.0, acoustic_w=1.0,
+        popular_w=3.0, era_w=2.0, tag_w=1.0, instru_w=1.0, live_w=2.0,
+    ),
+}
+
+DEFAULT_MODE = SCORING_MODES["balanced"]
+
+
+def score_song(user_prefs: Dict, song: Dict,
+               mode: ScoringMode = DEFAULT_MODE) -> Tuple[float, List[str]]:
+    """Score a song against user preferences using the given ScoringMode's weights."""
     score = 0.0
     reasons: List[str] = []
 
-    # --- original signals ---
-
     # Genre match — binary
     if song.get('genre', '').lower() == user_prefs.get('favorite_genre', '').lower():
-        score += GENRE_W
-        reasons.append(f"genre match (+{GENRE_W:.1f})")
+        score += mode.genre_w
+        reasons.append(f"genre match (+{mode.genre_w:.1f})")
 
     # Mood match — binary
     if song.get('mood', '').lower() == user_prefs.get('favorite_mood', '').lower():
-        score += MOOD_W
-        reasons.append(f"mood match (+{MOOD_W:.1f})")
+        score += mode.mood_w
+        reasons.append(f"mood match (+{mode.mood_w:.1f})")
 
-    # Energy proximity — continuous, max = ENERGY_W
+    # Energy proximity — continuous, max = mode.energy_w
     target_energy = user_prefs.get('target_energy')
-    song_energy = song.get('energy')
+    song_energy   = song.get('energy')
     if target_energy is not None and song_energy is not None:
-        points = (1.0 - abs(target_energy - song_energy)) * ENERGY_W
+        points = (1.0 - abs(target_energy - song_energy)) * mode.energy_w
         score += points
         reasons.append(f"energy proximity (+{points:.2f})")
 
-    # Acousticness preference — continuous, max = ACOUSTIC_W
+    # Acousticness preference — continuous, max = mode.acoustic_w
     acousticness = song.get('acousticness')
     if acousticness is not None:
-        points = (acousticness if user_prefs.get('likes_acoustic') else (1.0 - acousticness)) * ACOUSTIC_W
+        points = (acousticness if user_prefs.get('likes_acoustic') else (1.0 - acousticness)) * mode.acoustic_w
         score += points
-        reasons.append(f"acousticness preference (+{points:.2f})")
+        reasons.append(f"acousticness (+{points:.2f})")
 
-    # --- new signals ---
-
-    # Popularity: "mainstream" rewards popular songs; "obscure" rewards hidden gems
+    # Popularity — direction set by user_prefs, magnitude scaled by mode.popular_w
     pop_pref   = user_prefs.get('preferred_popularity')
     popularity = song.get('popularity')
     if pop_pref is not None and popularity is not None:
-        if pop_pref == 'mainstream':
-            points = (popularity / 100.0) * POPULAR_W
-        else:  # 'obscure'
-            points = ((100 - popularity) / 100.0) * POPULAR_W
+        raw    = (popularity / 100.0) if pop_pref == 'mainstream' else ((100 - popularity) / 100.0)
+        points = raw * mode.popular_w
         score += points
         reasons.append(f"{pop_pref} popularity (+{points:.2f})")
 
-    # Era match: exact decade = ERA_W; one decade away = ERA_W × 0.5
-    pref_decade  = user_prefs.get('preferred_decade')
-    song_decade  = song.get('release_decade')
+    # Era match — exact decade = mode.era_w; adjacent = mode.era_w × 0.5
+    pref_decade = user_prefs.get('preferred_decade')
+    song_decade = song.get('release_decade')
     if pref_decade is not None and song_decade is not None:
         gap = abs(pref_decade - song_decade)
         if gap == 0:
-            points = ERA_W
+            points = mode.era_w
             reasons.append(f"era match {song_decade}s (+{points:.2f})")
         elif gap == 10:
-            points = ERA_W * 0.5
+            points = mode.era_w * 0.5
             reasons.append(f"adjacent era {song_decade}s (+{points:.2f})")
         else:
             points = 0.0
         score += points
 
-    # Mood tags: +TAG_W per overlapping tag, max 4 matches
+    # Mood tags — +mode.tag_w per overlapping tag, capped at 4
     pref_tags = user_prefs.get('preferred_tags') or []
     song_tags = song.get('mood_tags') or []
     if pref_tags and song_tags:
         matches = [t for t in pref_tags if t in song_tags][:4]
         if matches:
-            points = len(matches) * TAG_W
+            points = len(matches) * mode.tag_w
             score += points
             reasons.append(f"tag overlap {matches} (+{points:.2f})")
 
-    # Instrumentalness: reward instrumental or vocal tracks based on preference
-    instru_pref   = user_prefs.get('likes_instrumental')
+    # Instrumentalness — continuous, max = mode.instru_w
+    instru_pref      = user_prefs.get('likes_instrumental')
     instrumentalness = song.get('instrumentalness')
     if instru_pref is not None and instrumentalness is not None:
-        points = (instrumentalness if instru_pref else (1.0 - instrumentalness)) * INSTRU_W
+        points = (instrumentalness if instru_pref else (1.0 - instrumentalness)) * mode.instru_w
         score += points
-        reasons.append(f"instrumentalness preference (+{points:.2f})")
+        reasons.append(f"instrumentalness (+{points:.2f})")
 
-    # Liveness: reward live-feel or studio-clean based on preference
+    # Liveness — continuous, max = mode.live_w
     live_pref = user_prefs.get('wants_live_feel')
     liveness  = song.get('liveness')
     if live_pref is not None and liveness is not None:
-        points = (liveness if live_pref else (1.0 - liveness)) * LIVE_W
+        points = (liveness if live_pref else (1.0 - liveness)) * mode.live_w
         score += points
-        reasons.append(f"liveness preference (+{points:.2f})")
+        reasons.append(f"liveness (+{points:.2f})")
 
     return score, reasons
 
 
-def recommend_songs(user_prefs: Dict, songs: List[Dict], k: int = 5) -> List[Tuple[Dict, float, str]]:
-    """Return the top-k songs from the catalog ranked by score_song, highest score first."""
+def recommend_songs(user_prefs: Dict, songs: List[Dict], k: int = 5,
+                    mode: ScoringMode = DEFAULT_MODE) -> List[Tuple[Dict, float, str]]:
+    """Return the top-k songs ranked by score_song under the given ScoringMode."""
     def to_entry(song: Dict) -> Tuple[Dict, float, str]:
         """Pack a song into a (song, score, explanation) tuple using score_song."""
-        score, reasons = score_song(user_prefs, song)
+        score, reasons = score_song(user_prefs, song, mode)
         explanation = "; ".join(reasons) if reasons else "No strong matches found."
         return (song, score, explanation)
 
